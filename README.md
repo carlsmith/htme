@@ -36,7 +36,7 @@ contain insignificant whitespace):
 </html>
 ```
 
-## How HTME Works
+## Quick Explanation
 
 HTME elements have flexible signatures and powerful operators that make it
 easy to create and mutate DOM trees in a domain specific dialect of Python
@@ -54,3 +54,22 @@ elements. They just happen to work really well together too.
 The library is brand new, but it is well tested and has no known bugs. The
 license is GPL3. Contributions are welcome. Please see the wiki for more
 information or open an issue to ask any questions.
+
+##  Installation
+
+> Simple is better than complex.
+
+HTME is a single file that only depends on the Python Standard Library. You
+just copy the file into your project and it is ready to go (like Bottle or
+jQuery).
+
+HTME will always be released as a single file without any third party deps,
+so you can always upgrade it by just updating your copy of the file with a
+newer verision.
+
+## Python 2 and 3
+
+HTME will provide exactly the same features whether the file is executed as
+Python 2 or 3 for at least as long as Python 2 is [officially maintained][1].
+
+[1]: https://legacy.python.org/dev/peps/pep-0373
