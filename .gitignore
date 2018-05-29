@@ -1,0 +1,154 @@
+# This file tells git what files and directories to ignore
+# when adding things to the repo. It currently covers Python
+# development (on all operating systems), and MacOS specific
+# stuff as well. Feel free to add support for other systems.
+# The code in this file was taken from open source projects
+# on GitHub.
+
+## -{ PYTHON SPECIFIC CRUFT }- ##
+
+# Byte code, DLL files and C extensions...
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Packaging and distribution files...
+
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller files and PIP logs...
+
+*.manifest
+*.spec
+target/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit testing and coverage reports...
+
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations...
+
+*.mo
+*.pot
+
+# Django...
+
+*.log
+local_settings.py
+db.sqlite3
+
+# Flask...
+
+instance/
+.webassets-cache
+
+# Scrapy...
+
+.scrapy
+
+# Sphinx documentation...
+
+docs/_build/
+
+# Jupyter Notebooks...
+
+.ipynb_checkpoints
+
+# PyEnv...
+
+.python-version
+
+# Celery beat schedule file...
+
+celerybeat-schedule
+
+# SageMath parsed files...
+
+*.sage.py
+
+# Environments...
+
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings...
+
+.spyderproject
+.spyproject
+
+# Rope project settings...
+
+.ropeproject
+
+# MyPy...
+
+.mypy_cache/
+
+## -{ MAC SPECIFIC CRUFT }- ##
+
+# General...
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two carriage returns...
+
+Icon
+
+
+# Thumbnails...
+
+._*
+
+# Files that might appear in the root of a volume...
+
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share...
+
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
