@@ -65,7 +65,7 @@ jQuery).
 
 HTME will always be released as a single file without any third party deps,
 so you can always upgrade it by just updating your copy of the file with a
-newer verision.
+newer version.
 
 ## Python 2 and 3
 
