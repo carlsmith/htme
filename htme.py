@@ -1224,7 +1224,7 @@ class _HTML(NormalElement):
         arguments are required."""
 
         super(_HTML, self).__init__(*signature)
-        self.attributes.update({"lang": lang})
+        if lang is not None: self.attributes.update({"lang": lang})
 
     def __repr__(self):
     
