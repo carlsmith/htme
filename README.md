@@ -57,8 +57,6 @@ information or open an issue to ask any questions.
 
 ##  Installation
 
-> Simple is better than complex.
-
 HTME is a single file that only depends on the Python Standard Library. You
 just copy the file into your project and it is ready to go (like Bottle or
 jQuery).
