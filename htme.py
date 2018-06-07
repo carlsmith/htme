@@ -19,50 +19,56 @@ openbrace, closedbrace, openangle, closedangle = "{", "}", "<", ">"
 
 def read(path): # TODO: look into `io.open` for unicode (bipy) support
 
-    """This simple helper function wraps `file.read` with an idiomatic with
-    statement, so the body of a file can be read easily. It takes on required
-    arg (`path`) which is a path to the file."""
+    """This simple helper function wraps `file.read` with the idiomatic
+    with-statement, so we can read from a file in a single expression.
+    It takes one required arg (`path`) which is a path to the file,
+    and returns the body of the file as a string."""
 
     with open(path, "r") as file: return file.read()
 
 def readlines(path):
 
-    """This simple helper function wraps `file.readlines` with an idiomatic
-    with statement, so the lines in the body of a file can be read easily.
-    It takes on required arg (`path`) which is a path to the file."""
+    """This helper function works just like `read`, but returns the file
+    as a list of lines (instead of a string)."""
 
     with open(path, "r") as file: return file.readlines()
 
 def write(content, path):
 
-    """This simple helper function wraps `file.write` with an idiomatic with
-    statement, so files can be written to (and created if they do not exist)
-    easily. It takes two required args (`path` and `content`). The content
-    is passed to `str`, then written to a file at path."""
+    """This helper function complements `read` and `readlines. It wraps
+    `file.write` with an idiomatic with-statement, so we can write to a
+    file (creating one if it does not exist) in a single expression. The
+    function takes two required args (`path` and `content`). The content
+    can be any object. It is passed to `str`, then written to the file
+    (replacing anything the file may have already contained) specified
+    by the path. Once complete, this function returns `None`."""
 
     with open(path, "w+") as file: file.write(str(content))
 
 def flatten(structure, terminal=None):
 
-    """This function flattens a nested sequence into an instance of the
-    `Nodes` class.
+    """This function flattens a nested sequence, returning the result as
+    an instance of the `Nodes` class (a pure superset of `list`). Having
+    this function return a `Nodes` instance instead of being a generator
+    is just more convenient in practice (as we always need an instance
+    `Nodes` in practice). Practicality beats purity.
 
     This function is important to the internal API, where it is used to
-    flatten every child array passed to a constructor or operator. Users
-    do not normally need this function, but they are free to use it.
+    flatten sequences of child nodes passed to element constructors and
+    all of the child operators. Users can also use it if they want to.
 
     The first arg (`structure`) is required, and is the object that needs
     flattening. The second arg (`terminal`) is optional. If provided, it
     is used instead of the default function that determines if an item is
     terminal or not. It defaults to a function that treats lists, tuples
     and any of their derived classes (including `Nodes`) as recursive,
-    and all other types of object (except `generator`) as terminal:
+    and all other types of object as terminal:
 
     >>> flatten([0, [], 1, 2, (3), (4, 5, [6]), 7, ((())), [[], 8], [[9]]])
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    Generator arguments are exhausted automatically, essentially treating
-    them as a tuple of the values that the generator yields:
+    Special Case: Generator arguments are internally passed to `tuple`, so
+    they are effectively non-terminal:
 
     >>> flatten(n * 2 for n in (1, 2, 3))
     [2, 4, 6]
@@ -127,7 +133,9 @@ def ext(path, length=1):
 
     >>> print(ext("/static/jquery.min.js", 2))                       
     min.js
-    """
+    
+    This function is used by `Favicon` to automatically generate the `type`
+    attribute from the `path` argument."""
 
     # split on dots, get `length` parts from the end, join on dots, return
 
@@ -137,26 +145,43 @@ def ext(path, length=1):
 
 class Pairs(dict):
     
-    """This class extends `dict` without overriding any of the inherited
-    functionality. It understands HTML element and data attributes, how
-    to sort them by name and type, how to escape the values etc. Each
-    element's `attributes` attribute is an instance of this class."""
+    """This class complements `Nodes`. It inherits from `dict`, while `Nodes`
+    inherits from `list`. Both classes extended their base classes without
+    modifying any inherited functionality. Elements with `attributes` use
+    a `Pairs` instance. Those with `children` use `Nodes`. We extend the
+    builtin containers to make them HTML aware."""
 
-    def tuple(self):
+    def sorted(self):
 
-        """This method takes no args and works a lot like the `dict.items`
-        method, returning two-tuples of key, value pairs. The method sorts
-        element and data attributes, expands keys, flattens and serialises
-        values, before returning the pairs.
+        """This method takes no args. It works a lot like the `dict.items`
+        method, returning two-tuples of key, value pairs.
+        
+        This method implements a lot of the HTME attribute rendering logic
+        (simplifying `Configurable.render_attributes`) with three stages:
+
+        1) The method first expands the names of any data attributes that use
+        the dollar syntax.
+
+        2) The method then sorts attributes (putting element attributes before
+        data attributes, sorting each subset asciibetically by name).
+
+        3) The method then simplifies and escapes the values, so they are the
+        exact strings that will be rendered (or `None`).
+
+        Note: The term *sequential value* refers to values that are instances
+        of `tuple`, `list` or a subclass. It does not include strings.
+
+        The rest of this docstring contains examples of the different aspects
+        of the attribute rendering logic...
 
         Attribute names that start with a dollar (`$`) are *data attributes*.
         The dollar will be automatically replaced in the rendered output with
-        the string `data-`:
+        the string `data` followed by a hyphen:
 
         >>> DIV({"$visitors": "50000"})
         <div data-visitors="50000"></div>
 
-        Attribute names are rendered in alphabetical order:
+        Attribute names are rendered in asciibetical order:
 
         >>> DIV({"aa": "0", "bb": "3", "ab": "1", "ba": "2"})
         <div aa="0" ab="1" ba="2" bb="3"></div>
@@ -192,15 +217,14 @@ class Pairs(dict):
 
         Null values are special. If an attribute's value is `None` it will be
         left unchanged (the value will still be `None` in the two-tuple that
-        represents the null pair in the list returned by this method). This
-        allows rendering methods to omit nullified attributes:
+        is returned by this method). This allows `render_attributes` to omit
+        nullified attributes:
 
         >>> DIV({"class": None})
         <div></div>
 
-        If a subvalue is `None`, that value is omitted by this method (it is
-        not included in value string that is generated by joining all extant
-        values in the array:
+        If a value is sequential and any of its subvalues are `None`, those
+        values are omitted from the generated string:
 
         >>> DIV({"test": ("string", 1, [2, 3], None)})
         <div test="string 1 2 3"></div>
@@ -221,37 +245,42 @@ class Pairs(dict):
         def expand(key):
 
             """This internal helper takes a key that may be spelled using the
-            shorthand for data attributes and returns the expanded version,
-            replacing the dollar with the `data` prefix and a hyphen."""
+            shorthand for data attributes (using the dollar prefix). If it is,
+            the dollar is replaced with the `data` prefix and a hyphen. The
+            function returns the key (expanded or unchanged)."""
 
             return "data-" + key[1:] if key.startswith(dollar) else key
 
         def convert(value):
 
-            """This internal helper function takes an attribute value and
-            converts it into the equivalent value that is returned by the
-            `simplify` method (as the value in one of the two-tuples)."""
+            """This internal helper function takes an attribute value or the
+            subvalue in a sequential value. It returns the equivalent value,
+            according to the HTME attribute rendering logic (which is always
+            a string or `None`):
 
-            # map the characters that need escaping to their escaped= codes...
+            * If `value` is `None`, it is returned.
+            * If `value` is `True`, the string `true` is returned. If `value`
+              is `False`, the string `false` is returned (note the case).
+            * If `value` is a number, the `str` version of `value` is returned.
+            * The subvalues in sequences (that are not `None`) are recursively
+              converted according to the same rules as terminal values, then
+              joined on spaces. The resulting string is returned.
+            * If none of the above, `value` is passed to `str` to ensure it
+              is a string, then any open angle brackets, ampersands and
+              doublequotes are replaced with escape codes (like `&amp;`)    """
+
+            # map the characters that need escaping to their escape codes...
  
             escapees = {'<': '&lt;', '&': '&amp;', '"': '&quot;'}
 
-            # catch, convert and return the value if its type is one that is
-            # handled specially, else use the generic logic at the end...
-
-            if value is None: return None                           # None
+            if value is None: return value                          # None
             if value is True: return "true"                         # True
             if value is False: return "false"                       # False
             if isinstance(value, (int, float)): return str(value)   # Number
             if isinstance(value, (list, tuple)):                    # Array
 
-                # recusively convert each subvalue, then join with spaces...
-
                 values = (convert(each) for each in value if each is not None)
                 return cat(values, space) 
-
-            # the value type is not special, ensure the value is a string
-            # and auto-escape the doublequotes, ampersands and less-thans...
 
             return cat(escapees.get(char, char) for char in str(value))
 
@@ -282,17 +311,19 @@ class Pairs(dict):
 class Nodes(list):
 
     """This class extends `list` without overriding any of the inherited
-    functionality. Each element's `children` attribute is an instance of
-    this class.
+    functionality. The `Pairs` class has a docstring that which explains
+    how `Pairs` and `Nodes` compliment each other.
+    
+    Each element's `children` attribute is an instance of this class.
 
     Slice operations on an element's children evaluate to an instance of
     this class, which implements operations on slices (operating on each
-    element in the slice), for example:
+    element in the slice that supports the operator), for example:
 
-        element[1:3] **= {"class": "selected"}
+        element[1:-1] **= {"class": "selected"}
 
-    That code would not work if `element[1:3]` returned a list or tuple
-    as those types do not understand the `**=` operator."""
+    That code updates the class of all but the first and last child of
+    `element`, skipping any children that do not have attributes."""
 
     @property
     def configurable_elements(self):
@@ -482,9 +513,12 @@ class _Tagged(object):
     def tagname(self):
 
         """This computed property returns the tag name, which is computed
-        from the class name by converting it to lowercase, then replacing
-        each underscore with a hyphen. It is computed on demand, so that
-        an element instance can have its class reassigned:
+        from a class name by converting it to lowercase, then replacing
+        each underscore with a hyphen.
+        
+        The property is computed so that an element instance can have its
+        class reassigned (this is not officially supported, as it is only
+        safe if you use a class with the same abstract element class):
 
         >>> element = LINK()
         >>> element **= {"src": "img.png"}
@@ -673,7 +707,7 @@ class _Configurable(object):
 
         results = []
 
-        for key, value in self.attributes.tuple():
+        for key, value in self.attributes.sorted():
 
             if value is None: continue                # ignore null attributes
             elif value == "": results.append(key)     # fix boolean attributes
@@ -683,14 +717,14 @@ class _Configurable(object):
 
 class _Parental(object):
 
-    """This mixin makes abstract element classes *parental*. It implements the
-    child operators and the `render_children` method.
+    """This mixin makes abstract element classes *parental*. It implements
+    the child operators and the `render_children` method.
 
-    If this mixin is mixed with the `_Configurable` mixin, then this class must
-    come first in the MRO. This class provides methods for getting and setting
-    items (using the square brackets operator) that correctly distinguish
-    between keys, indexes and slices. `_Configurable` implements methods
-    that always expect keys."""
+    If this mixin is mixed with the `_Configurable` mixin, then this class
+    must come first in the MRO. This class provides methods for getting and
+    setting items (using the square brackets operator) that will correctly
+    distinguish between keys, indexes and slices. `_Configurable` also
+    implements those methods, but they always expect keys."""
 
     def __imul__(self, *families):
 
@@ -928,11 +962,9 @@ class _Element(object):
 
     def write(self, path):
 
-        """This method renders the element, writes it to the given path,
-        then returns `self`, so it can be printed or method chained."""
+        """This method renders the element and writes it to the given path."""
 
         write(str(self), path)
-        return self
 
 # The abstract element classes...
 
@@ -1205,6 +1237,30 @@ class TSPAN(ForeignElement): pass
 class USE(ForeignElement): pass
 class VIEW(ForeignElement): pass
 
+# The concrete Special Element classes...
+
+class Comment(SpecialElement):
+
+    """This class implements HTML comment elements, as a concrete subclass of
+    the `SpecialElement` base class.
+    
+    >>> Comment("hello world")
+    <!--hello world-->
+    """
+
+    opener, closer = "<!--", "-->"
+
+class CData(SpecialElement):
+
+    """This class implements CDATA elements, as a concrete subclass of the
+    `SpecialElement` base class.
+    
+    >>> CData("hello world")
+    <![CDATA[hello world]]>
+    """
+
+    opener, closer = "<![CDATA[", "]]>"
+
 # The magic element classes that are only used by the engine...
 
 class _HTML(NormalElement):
@@ -1213,7 +1269,7 @@ class _HTML(NormalElement):
     signature to other elements, and works differently. Instances of this
     element are used to represent the document as a whole (the doctype is
     prepended to this element automatically when it is represented). This
-    class is only used internally. It is not part of the API at all."""
+    class is only used internally."""
 
     def __init__(self, lang, *signature):
 
@@ -1224,7 +1280,7 @@ class _HTML(NormalElement):
         arguments are required."""
 
         super(_HTML, self).__init__(*signature)
-        if lang is not None: self.attributes.update({"lang": lang})
+        if lang is not None: self["lang"] = lang
 
     def __repr__(self):
     
@@ -1240,9 +1296,8 @@ class _BODY(NormalElement):
     
     The constructor takes a reference to the instance of `Document` that the
     body element is bound to. The reference is used by the `__repr__` method
-    to append the browser upgrade stuff and to prepend any resource elements
-    to the rendered body. The remaining arguments follow the same pattern as
-    standard elements use."""
+    to append the augmentation to the body. The remaining arguments have the
+    same signature as standard normal elements."""
 
     def __init__(self, document, *signature):
 
@@ -1251,9 +1306,8 @@ class _BODY(NormalElement):
 
     def __repr__(self):
 
-        """This overrides `NormalElement.__repr__` so the representation can be
-        trimmed to remove the closing tag (`</body>`). This makes it easier
-        to concatenate script tags to the body (before replacing the tag)."""
+        """This overrides `NormalElement.__repr__` so that the augmentation
+        can be automatically appended to the body in the rendered output."""
 
         children = self.render_children()
         attributes = self.render_attributes()
@@ -1278,20 +1332,6 @@ class Tree(NormalElement):
     def __init__(self): self.children = Nodes()
 
     def __repr__(self): return self.render_children()
-
-class Comment(SpecialElement):
-
-    """This class implements HTML comment elements, as a concrete subclass of
-    the `SpecialElement` base class."""
-
-    opener, closer = "<!--", "-->"
-
-class CData(SpecialElement):
-
-    """This class implements CDATA elements, as a concrete subclass of the
-    `SpecialElement` base class."""
-
-    opener, closer = "<![CDATA[", "]]>"
 
 class Legacy(SpecialElement):
 
@@ -1347,8 +1387,10 @@ class Favicon(META):
 class Mobicon(Favicon):
 
     """This class extends `Favicon` by removing the `type` attribute and
-    updating a `rel` attribute to `apple-touch-icon`. Note that these tags
-    are also parsed by Android.
+    setting the `rel` attribute to `apple-touch-icon`. These elements were
+    created by Apple for specifying the addresses for the various icons used
+    by their range of mobile devices. Android has since started using these
+    icons as well, so we named them *mobicons*.
 
     >>> Mobicon("icon.svg")
     <meta href="icon.svg" rel="apple-touch-icon" sizes="any">
@@ -1379,7 +1421,7 @@ class Anchor(A):
     def __init__(self, path, *signature):
 
         super(Anchor, self).__init__(*signature)
-        self **= {"href": path}
+        self["href"] = path
 
 class Style(LINK):
 
@@ -1409,7 +1451,7 @@ class Logic(SCRIPT):
     def __init__(self, path, *args):
 
         super(Logic, self).__init__(*args)
-        self **= {"src": path}
+        self["src"] = path
 
 # The Hypertext Markup Engine...
 
@@ -1436,14 +1478,27 @@ class Engine(object): # TODO: improve doctest
     """
 
     def __init__(
+
+        # four miscellaneous attributes...
+
         self,
         lang="en",            # required ISO 639-1 language code
+        freezer=None,         # optional alternative initial frozen docs
+        tree=None,            # optional alternative initial tree element
+
+        # the expandable element attributes...
+
         charset="utf-8",      # required character encoding
         ie_version="edge",    # optional X-UA-Compatible metatag version
         base=None,            # setting for the optional base element
         title="",             # required body of the title element
         author=None,          # optional content of the author metatag
         description=None,     # optional content of the description metatag
+        manifest=None,        # optional url for the web manifest file
+        favicon=None,         # optional url for the favicon image file
+
+        # the viewport attributes...
+
         viewport=True,        # how to handle rendering the viewport metatag
         scale=1,              # sets the `initial-scale` viewport attribute
         scalable=None,        # sets the `user-scalable` viewport attribute
@@ -1451,21 +1506,24 @@ class Engine(object): # TODO: improve doctest
         maximum_scale=None,   # sets the `maximum-scale` viewport attribute
         width="device-width", # sets the `width` viewport attribute
         height=None,          # sets the `height` viewport attribute
-        manifest=None,        # optional url for the web manifest file
-        favicon=None,         # optional url for the favicon image file
-        icons=None,           # list of optional favicon and mobicon elements
+
+        # the three element arrays...
+
         installation=None,    # list of resource elements appended to the head
         augmentation=None,    # list of resource elements appended to the body
-        freezer=None,         # optional alternative initial frozen docs
+        icons=None,           # list of optional favicon and mobicon elements
+
+        # the attributes dicts for the boilerplate elements...
+
         html_attributes=None, # the hash for the html element attributes
         head_attributes=None, # the hash for the head element attributes
-        body_attributes=None, # the hash for the body element attributes
-        tree=None             # optional alternative initial tree element
+        body_attributes=None  # the hash for the body element attributes
+        
         ):
 
-        """This method just copies its keyword args to `self`, handling any
-        defaults.
-        
+        """This method has no required args (beyond `self`), and basically
+        just copies its keyword args to `self`, handling defaults etc.
+
         Note that if `freezer` is provided *as a keyword argument*, it can be
         an instance of `_Element` or `Engine`, and its `freezer` attribute is
         shallow copied to this engine. Of course, a dict can also be passed,
@@ -1526,11 +1584,11 @@ class Engine(object): # TODO: improve doctest
 
         head = HEAD(
             self.head_attributes,       self.render_charset(),
-            self.render_ie_version(),   self.render_title(),
-            self.render_author(),       self.render_description(),
-            self.render_viewport(),     self.render_favicon(),
-            self.render_manifest(),     self.render_icons(),
-            self.render_installation()
+            self.render_ie_version(),   self.render_base(),
+            self.render_title(),        self.render_author(),
+            self.render_description(),  self.render_viewport(),
+            self.render_favicon(),      self.render_icons(),
+            self.render_manifest(),     self.render_installation()
         )
 
         body = _BODY(self, self.body_attributes, str(self.tree))
@@ -1549,16 +1607,16 @@ class Engine(object): # TODO: improve doctest
 
     def __imul__(self, other):
 
-        """This method implements the `*=` operator for documents, so they work
-        like elements, passing everything on to `self.tree`."""
+        """This method implements the `*=` operator for documents, so they
+        work like elements, passing everything on to `self.tree`."""
 
         self.tree *= other
         return self
 
     def __idiv__(self, other):
 
-        """This method implements the `/=` operator for documents, so they work
-        like elements, passing everything on to `self.tree`."""
+        """This method implements the `/=` operator for documents, so they
+        work like elements, passing everything on to `self.tree`."""
 
         self.tree /= other
         return self
@@ -1567,9 +1625,7 @@ class Engine(object): # TODO: improve doctest
 
         """This method implements the square bracket suffix operator for
         documents, so they work like elements, passing the arguments
-        through to `self.tree`.
-
-        Note: The tree only has children."""
+        through to `self.tree`."""
 
         return self.tree[index]
 
@@ -1577,9 +1633,7 @@ class Engine(object): # TODO: improve doctest
 
         """This method implements the square bracket suffix operator for
         documents, so they work like elements, passing the arguments
-        through to `self.tree`.
-
-        Note: The tree only has children."""
+        through to `self.tree`."""
 
         self.tree[index] = other
         return self
@@ -1629,9 +1683,9 @@ class Engine(object): # TODO: improve doctest
 
     def __iter__(self):
 
-        """This method allows iteration over the current children of the tree,
-        with `child for child in docs`.
-        
+        """This method makes iterating over the engine instance iterate over
+        the tree (actually its children).
+
         >>> doc = Engine()
         >>> doc *= P(), P(), P()
         >>> for child in doc: print(child)
@@ -1644,7 +1698,7 @@ class Engine(object): # TODO: improve doctest
 
     def install(self, *tags):
         
-        """This method takes any number of tags, and just appends them to
+        """This method takes any number of elements, and just appends them to
         `self.installation`.
         
         >>> doc = Engine()
@@ -1657,7 +1711,7 @@ class Engine(object): # TODO: improve doctest
 
     def augment(self, *tags):
         
-        """This method takes any number of tags, and just appends them to
+        """This method takes any number of elements, and just appends them to
         `self.augmentation`.
 
         >>> doc = Engine()
@@ -1684,20 +1738,23 @@ class Engine(object): # TODO: improve doctest
     @staticmethod
     def un(array, args):
 
-        """This method iterates over a sequence of args. If an arg is some
-        instance of `int`, the tag with that index is deleted from `array`
-        (possibly raising an `IndexError`). If the arg is not an integer,
-        the `remove` method of the array is invoked to remove the first
-        tag that is equal to the arg (possibly raising a `ValueError`).
+        """This static method is used by the `uninstall`, `unaugment` and
+        `uniconify` methods. It takes two required (`array` and `args`).
 
-        If `args` is empty, every tag is removed from the array.
+        If `args` is empty, everything is removed from `array` (in place).
+        Otherwise, the method iterates over the items in `args`, treating
+        each of them in one of two ways, based on whether the arg is an
+        integer or not:
 
-        Note: Instances derived from `_Element` are equal to another object
-        if the string representation of the instance is equal to the string
-        representation of the other object, and not equal otherwise."""
+        - Integers: The element at that index (when the method was called)
+          is deleted from `array` (possibly raising an `IndexError`).
+        - Non-Integers: The `remove` method of `array` is invoked, passing
+          the item as the only arg (possibly raising a `ValueError`).
 
-        if not args: del array[:]
-        else:
+        See `uninstall`, `unaugment` and `uniconify` for more information
+        on how this method is used, including doctests."""
+
+        if args:
 
             args = list(args)
             args.sort()
@@ -1706,6 +1763,8 @@ class Engine(object): # TODO: improve doctest
 
                 if isinstance(arg, int): del array[arg - offset]
                 else: array.remove(arg)
+
+        else: del array[:]
 
     def uninstall(self, *args):
 
@@ -1781,14 +1840,14 @@ class Engine(object): # TODO: improve doctest
 
         """This static method takes the value of an engine attribute and an
         element (`candidate` and `fallback`), both required. It implements
-        the standard attribute expansion logic.
+        the element attribute expansion logic.
 
         If the candidate is `None`, an empty string is returned. If it is an
         element, then the candidate itself is returned, otherwise the fallback
         is returned.
 
         This is used internally by many of the internal `Engine.render_*`
-        methods (and is effectively doctested by them)."""
+        methods (and doctested by them)."""
 
         if candidate is None: return ""
         if isinstance(candidate, _Element): return candidate
@@ -1796,8 +1855,7 @@ class Engine(object): # TODO: improve doctest
 
     def render_charset(self):
 
-        """This method renders the meta charset element. The associated
-        attribute is required, and defaults to `utf-8`.
+        """This method expands the meta charset engine attribute:
 
         >>> Engine().render_charset()
         <meta charset="utf-8">
@@ -1847,8 +1905,8 @@ class Engine(object): # TODO: improve doctest
 
     def render_title(self):
 
-        """This method renders the `title` element, which is required, and
-        defaults to an empty string:
+        """This method renders the `title` element, which is required. Its
+        content defaults to an empty string:
 
         >>> Engine().render_title()
         <title></title>
@@ -1895,9 +1953,9 @@ class Engine(object): # TODO: improve doctest
         scale, maximum and minimum scale, scalability, height and width of
         the viewport. This helps mobile devices to render pages correctly.
 
-        If `mobile` is `None` or `False`, no element is rendered. Otherwise,
-        the element is constructed from the `scale`, `scalable`, `width`,
-        `height`, `maximum_scale` and `minimum_scale` attributes:
+        If `mobile` is `None`, no element is rendered. Otherwise, the element
+        is constructed from the `scale`, `scalable`, `width`, `height`,
+        `maximum_scale` and `minimum_scale` attributes:
 
         >>> doc = Engine()
         >>> doc.render_viewport()
@@ -2012,11 +2070,10 @@ class Engine(object): # TODO: improve doctest
 
     def write(self, path):
 
-        """This method renders the entire doc, writes it to the given path,
-        then returns `self`, so it can be printed or method chained."""
+        """This method converts the instance to a HTML document and writes it
+        to the given path."""
 
         write(str(self), path)
-        return self
 
 # Run the doctests if this file is executed as a script...
 
