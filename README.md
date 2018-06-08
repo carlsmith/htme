@@ -1,5 +1,7 @@
 # HTME: The Hypertext Markup Engine
 
+*HTML for Python*
+
 The Hypertext Markup Engine (HTME) aims to replace templating languages (like
 Jinja 2) and crude DSLs (like Stan) with a Pythonic way to express HTML trees
 and documents (with inline SVG and MathML support).
