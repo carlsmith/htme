@@ -64,8 +64,9 @@ handful of them.
 ## Project Status
 
 The library is brand new, so we can not recommend using it in production yet.
-However, it is well tested and has no known bugs. The license is GPL3. Please
-see the wiki for more information or open an issue to ask any questions.
+However, it is well tested and has no known bugs.
+
+Please see the wiki for more information, or open an issue to ask a question.
 
 ##  Installation
 
@@ -78,7 +79,7 @@ newer version.
 
 ## Contributing
 
-Contributions are very welcome.
+HTME is licensed under the GPL3, and contributions are very welcome.
 
 We use doctests (which allow us to express what should happen as interactive
 interpreter sessions in our docstrings). Doctests work well for this library
@@ -86,6 +87,15 @@ and make it easy for people to contribute.
 
 The coding style is not PEP8 (but is readable and consistant). Please do not
 worry about trying to copy it. Write your code your way.
+
+We want you to feel able to just make a copy of the file, improve something,
+write a few simple examples of how it should work in the docstrings, run the
+tests (just run `htme.py` as a script with Python 2, then Python 3), and you
+are ready to make a PR.
+
+We also want people who are new or unfamiliar with contributing to know this
+project takes a relaxed approach, so just do your best, and we will sort out
+any issues together.
 
 ## Code of Conduct
 
