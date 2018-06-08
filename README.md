@@ -1,6 +1,4 @@
-# Hypertext Markup Engine
-
-> HTME: HTML for Python
+# HTME: The Hypertext Markup Engine
 
 The Hypertext Markup Engine (HTME) aims to replace templating languages (like
 Jinja 2) and crude DSLs (like Stan) with a Pythonic way to express HTML trees
@@ -8,16 +6,16 @@ and documents (with inline SVG and MathML support).
 
 ## Hello World
 
-The following example creates a complete, fully functional HTML5 page,
-with the W3Schools Unordered List example as its body:
+The following example creates a complete, fully functional HTML5 page, with
+the W3Schools Unordered List example as its body:
 
 ``` python
 doc = Engine(title='HTME', favicon='/static/favicon.png')
 doc *= UL(LI(item) for item in ('Coffee', 'Tea', 'Milk'))
 ```
 
-Printing `doc` would then output this code (the real output would not
-contain insignificant whitespace):
+Printing `doc` would then output this code (the real output would not contain
+insignificant whitespace):
 
 ``` html
 <!doctype html>
@@ -49,9 +47,6 @@ HTME also provides an engine that is able to generate HTML5 documents from
 a set of simple attributes, only requiring users to define the guts of the
 body as a tree of elements.
 
-You can use the elements without the engine, or use the engine without the
-elements. They just happen to work really well together too.
-
 ## Project Status
 
 The library is brand new, but it is well tested and has no known bugs. The
@@ -61,8 +56,7 @@ information or open an issue to ask any questions.
 ##  Installation
 
 HTME is a single file that only depends on the Python Standard Library. You
-just copy the file into your project and it is ready to go (like Bottle or
-jQuery).
+can just copy the file into your project or library and you are good to go.
 
 HTME will always be released as a single file without any third party deps,
 so you can always upgrade it by just updating your copy of the file with a
