@@ -44,22 +44,23 @@ of elements and 2) generating HTML5 documents. It takes a different approach
 to each of them:
 
 1. Each type of element (DIV, SVG, IMG etc) is implemented as a custom class
-that you can instantiate directly or subclass and extend. These classes have
-common parent classes that implement flexible constructor signatures (making
-it easy to create elements) with a complementary suite of powerful operators
-(making it easy to mutate the attributes or children of an existing element).
+   that you can instantiate directly or subclass and extend. These classes
+   have common parent classes that implement flexible constructor signatures
+   (making it easy to create elements) with a complementary suite of powerful
+   operators (making it easy to mutate the attributes or children of existing
+   elements).
 
-Elements are just containers for state (an attributes dictionary with a list
-of child elements). The constructors and operators help with configuring the
-state. Whenever an element is rendered, it uses HTML syntax to represent its
-state.
+   Elements are just containers for state (an attributes dictionary and list
+   of child elements). The constructors and operators help with configuring
+   the state. Whenever an element is rendered, it uses HTML syntax to
+   represent its state.
 
 2. HTME provides an engine that is able to generate complete HTML5 documents
-from about twenty simple attributes, only requiring users to define the guts
-of the body as a tree of elements.
+   from about twenty simple attributes, only requiring users to define the
+   guts of the body as a tree of elements.
 
-The engine attributes use common defaults, so you will only typically edit a
-handful of them.
+   The engine attributes use common defaults, so you will only typically edit
+   a handful of them.
 
 ## Project Status
 
@@ -87,15 +88,6 @@ and make it easy for people to contribute.
 
 The coding style is not PEP8 (but is readable and consistant). Please do not
 worry about trying to copy it. Write your code your way.
-
-We want you to feel able to just make a copy of the file, improve something,
-write a few simple examples of how it should work in the docstrings, run the
-tests (just run `htme.py` as a script with Python 2, then Python 3), and you
-are ready to make a PR.
-
-We also want people who are new or unfamiliar with contributing to know this
-project takes a relaxed approach, so just do your best, and we will sort out
-any issues together.
 
 ## Code of Conduct
 
