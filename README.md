@@ -53,9 +53,11 @@ to each of them:
    elements).
 
    Elements are just containers for state (an attributes dictionary and list
-   of child elements). The constructors and operators help with configuring
-   the state. Whenever an element is rendered, it uses HTML syntax to
-   represent its state.
+   of child elements). The constructors and operators just make it easier to
+   get an element into the desired state.
+
+   Whenever an element is rendered, it simply uses HTML syntax to represent
+   its current state.
 
 2. HTME provides an engine that is able to generate complete HTML5 documents
    from about twenty simple attributes, only requiring users to define the
@@ -63,6 +65,14 @@ to each of them:
 
    The engine attributes use common defaults, so you will only typically edit
    a handful of them.
+
+   Whenever an engine instance is rendered, it simply uses HTML syntax to
+   represent its current state (which is always a complete HTML document).
+
+The elements and the engine work really well together, but do not *depend* on
+each other. For example, you can use the engine to generate the boilerplate
+for a project, with some other tool (maybe a Markdown parser) generating
+the guts of the body.
 
 ## Project Status
 
