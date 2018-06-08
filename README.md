@@ -1,7 +1,10 @@
-# The Hypertext Markup Engine
+# Hypertext Markup Engine
 
-HTME is a simple, Pythonic library for creating and maintaining HTML5
-documents, with inline SVG and MathML support built in.
+> HTME: HTML for Python
+
+The Hypertext Markup Engine (HTME) aims to replace templating languages (like
+Jinja 2) and crude DSLs (like Stan) with a Pythonic way to express HTML trees
+and documents (with inline SVG and MathML support).
 
 ## Hello World
 
