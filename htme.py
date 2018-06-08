@@ -45,6 +45,14 @@ def write(content, path):
 
     with open(path, "w+") as file: file.write(str(content))
 
+def writelines(lines, path):
+
+    """This helper function works just like `write`, but its first arg is
+    a string iterable. Each string is written to the file specified by the
+    second arg (`path`) as individual lines."""
+
+    with open(path, "w+") as file: file.writelines(lines)
+
 def flatten(sequence):
 
     """This function takes one required argument (`sequence`), which is a
@@ -120,24 +128,24 @@ def cat(sequence, seperator=""):
 
     return seperator.join(str(item) for item in sequence)
 
-def ext(path, length=1):
+def filetype(path, length=1):
 
-    """This helper takes a required arg (`path`), which should be a path
-    or filename string. By default, this function returns everything after
-    the last dot in the path. It is useful for getting an extension from
-    a filename:
+    """This helper function takes one required arg (`path`), which should be
+    filename or path (a string). By default, this function returns everything
+    after the last dot in `path`, which is useful for getting the extension
+    from a filename or path:
 
-    >>> print(ext("/static/jquery.min.js"))
+    >>> print(filetype("/static/jquery.min.js"))
     js
 
     The function takes an optional second arg (`length`) that defaults to `1`.
-    The length must be a positive integer, and is the number of subextensions
-    to include in the output. If there are more than one, the dots in between
-    the subextensions are included as well.
+    The argument must be a positive integer, and specifies how many parts an
+    extension has. If there are more than one, the dots in between the parts
+    are included as well:
 
-    >>> print(ext("/static/jquery.min.js", 2))                       
+    >>> print(filetype("/static/jquery.min.js", 2))                       
     min.js
-    
+
     This function is used by `Favicon` to automatically generate the `type`
     attribute from the `path` argument."""
 
@@ -1382,7 +1390,7 @@ class Favicon(META):
         else:
 
             size = space.join( "{0}x{0}".format(size) for size in sizes )
-            image_type = "image/" + ext(href)
+            image_type = "image/" + filetype(href)
 
         self.attributes = Pairs(
             rel="icon", href=href, sizes=size, type=image_type
