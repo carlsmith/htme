@@ -45,43 +45,47 @@ def write(content, path):
 
     with open(path, "w+") as file: file.write(str(content))
 
-def flatten(structure, terminal=None):
+def flatten(sequence):
 
-    """This function flattens a nested sequence, returning the result as
-    an instance of the `Nodes` class (a pure superset of `list`). Having
-    this function return a `Nodes` instance instead of being a generator
-    is just more convenient in practice (as we always need an instance
-    `Nodes` in practice). Practicality beats purity.
+    """This function takes one required argument (`sequence`), which is a
+    potentially nested sequence of child nodes. It flattens the sequence,
+    then returns the result as a new instance of `Nodes`.
 
-    This function is important to the internal API, where it is used to
-    flatten sequences of child nodes passed to element constructors and
-    all of the child operators. Users can also use it if they want to.
+    This function is important to the internal API, as it implements the
+    rules that element constructors and child operators use to flatten
+    all of their child arguments and operands.
 
-    The first arg (`structure`) is required, and is the object that needs
-    flattening. The second arg (`terminal`) is optional. If provided, it
-    is used instead of the default function that determines if an item is
-    terminal or not. It defaults to a function that treats lists, tuples
-    and any of their derived classes (including `Nodes`) as recursive,
-    and all other types of object as terminal:
+    The function treats tuples, lists and instances of their subclasses
+    (like `Nodes`) as non-terminal, and every other object as terminal
+    (except for two special cases that are discussed below).
+    
+    For simplicity, we use integers in a couple of the following examples,
+    although we would expect the terminal items to be elements and text
+    nodes in practice:
 
     >>> flatten([0, [], 1, 2, (3), (4, 5, [6]), 7, ((())), [[], 8], [[9]]])
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    Special Case: Generator arguments are internally passed to `tuple`, so
-    they are effectively non-terminal:
+    Special Case: Generators are internally converted to tuples (by just
+    passing each generator through `tuple`):
 
     >>> flatten(n * 2 for n in (1, 2, 3))
     [2, 4, 6]
 
+    Special Case: Element classes are converted to empty instances of the
+    class (by invoking it with no args):
+
+    >>> flatten([DIV, ASIDE]) == flatten([DIV(), ASIDE()])
+    True
+
     Aside: Other Python Hypertext DSLs use flattening as a core concept. In
     HTME, flattening just happens automatically."""
 
-    results = Nodes() # the list of results that will be returned
+    results = Nodes()
 
-    # Set the function that determines if an item is terminal or non-terminal:
-    terminal = terminal or (lambda item: not isinstance(item, (list, tuple)))
+    terminal = lambda item: not isinstance(item, (list, tuple))
 
-    for item in structure:
+    for item in sequence:
 
         # Prevent dicts from being accidently provided as children:
         if isinstance(item, dict): raise ValueError("dicts cannot be children")
