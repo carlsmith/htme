@@ -53,6 +53,52 @@ def writelines(lines, path):
 
     with open(path, "w+") as file: file.writelines(lines)
 
+def cat(sequence, seperator=""):
+
+    """This function takes one required arg (`sequence`) and an optional arg
+    (`seperator`) that defaults to an empty string. Each item in the sequence
+    is passed to `str` and all of the results are concatenated together using
+    the seperator. The result of the concatenation is returned:
+
+    >>> print(cat(["<", "spam", ">"]))
+    <spam>
+
+    >>> print(cat(("spam", "eggs", "spam and eggs"), space))
+    spam eggs spam and eggs
+
+    This function is used extensively throughout the library, just because
+    it is often a bit prettier than using `join` directly, especially with
+    the default seperator."""
+
+    return seperator.join(str(item) for item in sequence)
+
+def filetype(path, length=1):
+
+    """This helper function takes one required arg (`path`), which should be
+    filename or path (a string). By default, this function returns everything
+    after the last dot in `path`, which is useful for getting the extension
+    from a filename or path:
+
+    >>> print(filetype("/static/jquery.min.js"))
+    js
+
+    The function takes an optional second arg (`length`) that defaults to `1`.
+    The argument must be a positive integer, and specifies how many parts an
+    extension has. If there are more than one, the dots in between the parts
+    are included as well:
+
+    >>> print(filetype("/static/jquery.min.js", 2))                       
+    min.js
+
+    This function is used by `Favicon` to automatically generate the `type`
+    attribute from the `path` argument."""
+
+    # split on dots, get `length` parts from the end, join on dots, return
+
+    return cat(path.split(dot)[-length:], dot)
+
+# The library specific helper functions...
+
 def flatten(sequence):
 
     """This function takes one required argument (`sequence`), which is a
@@ -108,50 +154,6 @@ def flatten(sequence):
         results += [item] if terminal(item) else flatten(item)
 
     return results
-
-def cat(sequence, seperator=""):
-
-    """This function takes one required arg (`sequence`) and an optional arg
-    (`seperator`) that defaults to an empty string. Each item in the sequence
-    is passed to `str` and all of the results are concatenated together using
-    the seperator. The result of the concatenation is returned:
-
-    >>> print(cat(["<", "spam", ">"]))
-    <spam>
-
-    >>> print(cat(("spam", "eggs", "spam and eggs"), space))
-    spam eggs spam and eggs
-
-    This function is used extensively throughout the library, just because
-    it is often a bit prettier than using `join` directly, especially with
-    the default seperator."""
-
-    return seperator.join(str(item) for item in sequence)
-
-def filetype(path, length=1):
-
-    """This helper function takes one required arg (`path`), which should be
-    filename or path (a string). By default, this function returns everything
-    after the last dot in `path`, which is useful for getting the extension
-    from a filename or path:
-
-    >>> print(filetype("/static/jquery.min.js"))
-    js
-
-    The function takes an optional second arg (`length`) that defaults to `1`.
-    The argument must be a positive integer, and specifies how many parts an
-    extension has. If there are more than one, the dots in between the parts
-    are included as well:
-
-    >>> print(filetype("/static/jquery.min.js", 2))                       
-    min.js
-
-    This function is used by `Favicon` to automatically generate the `type`
-    attribute from the `path` argument."""
-
-    # split on dots, get `length` parts from the end, join on dots, return
-
-    return cat(path.split(dot)[-length:], dot)
 
 # The concrete container classes...
 
@@ -884,54 +886,87 @@ class Signature0(object):
 
     def __init__(self, attributes=None):
 
-        """This method implements Signature 0, which just takes an optional
-        attributes dict:
+        """This method implements Signature 0, which takes one optional arg
+        (`attributes`). If the arg is an instance of `Pairs`, it is used as
+        the element's `attributes` property. If the arg is a dict, it is
+        passed to `Pairs` and the result is used. If the arg is `None`,
+        an empty `Pairs` instance is used:
 
         >>> IMG()
         <img>
 
         >>> IMG({"src": "img.png"})
         <img src="img.png">
-        """
+        
+        Note: This method also ensures elements have a freezer."""
 
-        # TODO: Consider assigning the `Pairs` class to the attributes dict
-        # (if it is provided), directly updating its class.
-
-        self.attributes = Pairs({} if attributes is None else attributes)
+        self.attributes = self.signature(attributes)
         self.freezer = {}
+
+    @staticmethod
+    def signature(attributes):
+
+        """This static method implements the signature, so it can be used by
+        subclasses that override the init method."""
+
+        if isinstance(attributes, Pairs): return attributes
+        return Pairs({} if attributes is None else attributes)
 
 class Signature1(object):
 
     def __init__(self, *children):
 
-        """This method implements the Signature 1, which takes zero or
-        more children:
+        """This method implements Signature 1, which takes zero or more
+        children, which are flattened into a `Nodes` instance, which is
+        then used as the element's `children` attribute:
 
         >>> print(UL({"class": "nav"}, LI("Coffee"), LI("Tea"), LI("Milk")))
         <ul class="nav"><li>Coffee</li><li>Tea</li><li>Milk</li></ul>
-        """
+        
+        Note: This method also ensures elements have a freezer."""
    
-        self.children = flatten(children)
+        self.children = self.signature(children)
         self.freezer = {}
+
+    @staticmethod
+    def signature(children):
+
+        """This static method implements the signature, so it can be used by
+        subclasses that override the init method. The signature is so simple
+        that this method is not very useful in itself, but all three classes
+        that implement element signatures have the same API, and the other
+        two have more complex signatures."""
+
+        return flatten(children)
 
 class Signature2(object):
 
     def __init__(self, *args):
 
         """This method implements Signature 2, which takes an optional
-        attibutes dict, followed by zero or more children:
+        attibutes dict, followed by zero or more children. It does the
+        same thing as Signature 0 with any attributes and the same as
+        Signature 1 with any children:
 
         >>> print(UL({"class": "nav"}, LI("Coffee"), LI("Tea"), LI("Milk")))
         <ul class="nav"><li>Coffee</li><li>Tea</li><li>Milk</li></ul>
-        """
+        
+        Note: This method also ensures elements have a freezer."""
 
-        # TODO: See the comment in `Signature0` re. assigning `Pairs`.
+        self.attributes, self.children = self.signature(args)
+        self.freezer = {}
+
+    @staticmethod
+    def signature(args):
+
+        """This static method implements the signature, so it can be used by
+        subclasses that override the init method."""
 
         args = list(args)
         attributes = args.pop(0) if args and isinstance(args[0], dict) else {}
-        self.attributes = Pairs(attributes)    
-        self.children = flatten(args)
-        self.freezer = {}
+
+        if isinstance(attributes, Pairs): return attributes, flatten(args)
+        return Pairs(attributes), flatten(args)
 
 # The abstract element base class...
 
