@@ -46,15 +46,18 @@ of elements and 2) generating HTML5 documents. It takes a different approach
 to each of them:
 
 1. Each type of element (DIV, SVG, IMG etc) is implemented as a custom class
-   that you can instantiate directly or subclass and extend. These classes
-   have common parent classes that implement flexible constructor signatures
-   (making it easy to create elements) with a complementary suite of powerful
-   operators (making it easy to mutate the attributes or children of existing
-   elements).
+   that you can instantiate directly or subclass and extend.
 
-   Elements are just containers for state (an attributes dictionary and list
-   of child elements). The constructors and operators just make it easier to
-   get an element into the desired state.
+   Elements are just containers for state. They basically mashup a dictionary
+   (of attributes) with a list (of child elements).
+
+   Element classes have flexible constructor signatures that make it easy to
+   express new elements with a desired state.
+
+   Element classes implement a set of powerful operators that complement the
+   constructor signatures, operating on the same dictionaries of attributes
+   and sequences of children. The operators make it easy to mutate the
+   attributes and children of existing elements.
 
    Whenever an element is rendered, it simply uses HTML syntax to represent
    its current state.
@@ -66,10 +69,11 @@ to each of them:
    The engine attributes use common defaults, so you will only typically edit
    a handful of them.
 
-   Whenever an engine instance is rendered, it simply uses HTML syntax to
-   represent its current state (which is always a complete HTML document).
+   Engine instances are (much like elements) containers for state, that use
+   HTML syntax to represent their current state when rendered (which is
+   always a complete HTML document).
 
-The elements and the engine work really well together, but do not *depend* on
+The elements and the engine work really well together, but do not depend on
 each other. For example, you can use the engine to generate the boilerplate
 for a project, with some other tool (maybe a Markdown parser) generating
 the guts of the body.
