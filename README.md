@@ -69,7 +69,7 @@ to each of them:
    The engine attributes use common defaults, so you will only typically edit
    a handful of them.
 
-   Engine instances are (much like elements) containers for state, that use
+   Engine instances are (much like elements) containers for state that use
    HTML syntax to represent their current state when rendered (which is
    always a complete HTML document).
 

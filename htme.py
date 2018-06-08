@@ -1021,6 +1021,8 @@ class SpecialElement(_Element, _Parental, Signature1):
     CDATA and Legacy elements (those that have constant opening and closing
     tags, with some raw content between)."""
 
+    opener, closer = empty, empty # these defaults are inherited by `Tree`
+
     def __repr__(self):
 
         """This method renders special elements. It just concatenates the
@@ -1364,21 +1366,13 @@ class _BODY(NormalElement):
 
 # The Magic Element Helper Classes...
 
-class Tree(NormalElement):
+class Tree(SpecialElement):
 
-    """This abstract element implements just the body of a proper HTML element.
-    It has children, and all the methods that open elements have for working
-    with children, but it does not have a name or attributes (nor the
-    associated methods).
-
-    When an instance of `Tree` is rendered, it just concatenates each of its
-    children together and returns the HTML.
+    """This class implements a container element that only has the guts of a
+    proper HTML element. It has children and all the associated methods, but
+    no tagname or attributes. It is used a bit like a HTML NodeList object.
 
     Note: An instance of this class is exposed to users as `Engine.tree`."""
-
-    def __init__(self): self.children = Nodes()
-
-    def __repr__(self): return self.render_children()
 
 class Legacy(SpecialElement):
 
@@ -1455,8 +1449,8 @@ class Mobicon(Favicon):
 class Anchor(A):
 
     """This class implements a magic element that generates anchor tags. The
-    constructor requires a path (the `href` value), followed by the Standard
-    Signature:
+    constructor requires a path (the `href` value), followed by the standard
+    signature for normal elements:
 
     >>> Anchor("/about", "The about us page.")
     <a href="/about">The about us page.</a>
@@ -1465,10 +1459,10 @@ class Anchor(A):
     <a class="button" href="/about">The about us page.</a>
     """
 
-    def __init__(self, path, *signature):
+    def __init__(self, href, *signature):
 
         super(Anchor, self).__init__(*signature)
-        self["href"] = path
+        self["href"] = href
 
 class Style(LINK):
 
