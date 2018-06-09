@@ -6,6 +6,8 @@ The Hypertext Markup Engine (HTME) aims to replace templating languages (like
 Jinja 2) and crude DSLs (like Stan) with a Pythonic way to express HTML trees
 and documents (with inline SVG and MathML support).
 
+[1]: http://karrigell.sourceforge.net/en/htmltags.html
+
 ## Hello World
 
 The following example creates a fully functional HTML5 document that uses the
@@ -52,31 +54,34 @@ to each of them:
    (of attributes) with a list (of child elements).
 
    Element classes have flexible constructor signatures that make it easy to
-   express new elements with a desired state.
+   initialize elements in a desired state.
 
-   Element classes implement a set of powerful operators that complement the
-   constructor signatures, operating on the same dictionaries of attributes
-   and sequences of children. The operators make it easy to mutate the
+   Element classes also implement a complete set of operators that complement
+   the constructor signatures, accepting the same objects as operands as the
+   constructors take as arguments. The operators make it easy to mutate the
    attributes and children of existing elements.
 
    Whenever an element is rendered, it simply uses HTML syntax to represent
    its current state.
 
-2. HTME provides an engine that is able to generate complete HTML5 documents
-   from about twenty simple attributes, only requiring users to define the
-   guts of the body as a tree of elements.
+2. HTME provides an engine that can create the HTML5 boilerplate for *any*
+   document from about twenty simple attributes.
+   
+   The boilerplate includes the doctype, the HTML, HEAD and BODY elements,
+   every element inside the HEAD element, and all of the elements at the end
+   of the BODY element (for loading CSS and JavaScript resources after the
+   body is rendered). You only need to define the *tree* (the guts of the
+   body) as a nested tree of elements.
 
-   The engine attributes use common defaults, so you will only typically edit
-   a handful of them.
+   The engine attributes use common defaults, so you will normally only need
+   to edit a handful of them to get the boilerplate you need.
 
-   Engine instances are (much like elements) containers for state that use
-   HTML syntax to represent their current state when rendered (which is
-   always a complete HTML document).
+   An instance of the engine is a container for state that uses HTML syntax
+   to represent its current state (always a complete HTML5 document) when
+   rendered.
 
-The elements and the engine work really well together, but do not depend on
-each other. For example, you can use the engine to generate the boilerplate
-for a project, with some other tool (maybe a Markdown parser) generating
-the guts of the body.
+Note: You can use the engine to generate the boilerplate for a project, with
+some other tool (maybe a Markdown parser) generating the guts of the body.
 
 ## Project Status
 

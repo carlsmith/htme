@@ -1322,19 +1322,34 @@ class _HTML(NormalElement):
 
     def __init__(self, lang, *signature):
 
-        """These elements are created to hold the `head` and `body` elements
-        of a document. The constructor takes a `lang` argument, which sets
-        the `lang` attribute of the `html` element. It also takes a `head`
-        and `body` element, which become its only children. All three
-        arguments are required."""
+        """This constructor takes a `lang` argument, which sets the `lang`
+        attribute of the HTML element (if it is not `None` and the `lang`
+        has not already been set (by `Engine.html_attributes`)).
+        
+        The `lang` arg is followed by the standard signature for normal
+        elements. In practice, `Engine` passes the `html_attributes` dict,
+        followed by two  children (the HEAD and BODY elements).
+
+        Note: The `_HTML.__repr__` method prepends the doctype tag to
+        rendered output automatically:
+
+        >>> _HTML("es", {"class": "foo"})
+        <!doctype html><html class="foo" lang="es"></html>
+
+        >>> _HTML("es", {"lang": "jp", "class": "foo"})
+        <!doctype html><html class="foo" lang="jp"></html>
+        """
 
         super(_HTML, self).__init__(*signature)
-        if lang is not None: self["lang"] = lang
+        
+        if (lang is None) or ("lang" in self.attributes): return
+            
+        self["lang"] = lang
 
     def __repr__(self):
     
-        """This overrides `NormalElement.__repr__` so the representation can be
-        concatenated to the HTML5 doctype to create a complete document."""
+        """This overrides `NormalElement.__repr__` so the representation can
+        be concatenated to the HTML5 doctype to create a complete document."""
 
         return "<!doctype html>" + super(_HTML, self).__repr__()
 
@@ -1520,14 +1535,20 @@ class Engine(object): # TODO: improve doctest
 
     def __init__(
 
-        # four miscellaneous attributes...
+        # `self` and the three miscellaneous attributes...
 
         self,
         lang="en",            # required ISO 639-1 language code
         freezer=None,         # optional alternative initial frozen docs
         tree=None,            # optional alternative initial tree element
 
-        # the expandable element attributes...
+        # the attribute dicts for the boilerplate elements...
+
+        html_attributes=None, # the hash for the html element attributes
+        head_attributes=None, # the hash for the head element attributes
+        body_attributes=None, # the hash for the body element attributes
+
+        # the expandable directive element attributes...
 
         charset="utf-8",      # required character encoding
         ie_version="edge",    # optional X-UA-Compatible metatag version
@@ -1548,27 +1569,23 @@ class Engine(object): # TODO: improve doctest
         width="device-width", # sets the `width` viewport attribute
         height=None,          # sets the `height` viewport attribute
 
-        # the three element arrays...
+        # the three directive element arrays...
 
         installation=None,    # list of resource elements appended to the head
         augmentation=None,    # list of resource elements appended to the body
-        icons=None,           # list of optional favicon and mobicon elements
+        icons=None            # list of optional favicon and mobicon elements
 
-        # the attributes dicts for the boilerplate elements...
-
-        html_attributes=None, # the hash for the html element attributes
-        head_attributes=None, # the hash for the head element attributes
-        body_attributes=None  # the hash for the body element attributes
-        
         ):
 
-        """This method has no required args (beyond `self`), and basically
-        just copies its keyword args to `self`, handling defaults etc.
+        """Any of the engine attributes can be set as keyword args to this
+        method. It does not take positional args. The method initialises
+        all of the engine attributes, handling defaults etc.
 
         Note that if `freezer` is provided *as a keyword argument*, it can be
-        an instance of `_Element` or `Engine`, and its `freezer` attribute is
-        shallow copied to this engine. Of course, a dict can also be passed,
-        and it will be used directly (without copying)."""
+        an instance of `_Element` or `Engine`. In which case that object's
+        `freezer` attribute is shallow copied to this engine. Naturally,
+        a dict can also be passed in, and it will be used directly
+        (without copying)."""
 
         # This function returns its first arg if its first arg is expressly
         # not `None`; otherwise it returns its second arg:
@@ -1994,8 +2011,9 @@ class Engine(object): # TODO: improve doctest
         scale, maximum and minimum scale, scalability, height and width of
         the viewport. This helps mobile devices to render pages correctly.
 
-        If `mobile` is `None`, no element is rendered. Otherwise, the element
-        is constructed from the `scale`, `scalable`, `width`, `height`,
+        If `viewport` is `None`, no element is rendered. If it is an element,
+        the element is used directly. If `viewport` is `True`, the element is
+        constructed from the `scale`, `scalable`, `width`, `height`,
         `maximum_scale` and `minimum_scale` attributes:
 
         >>> doc = Engine()
