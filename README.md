@@ -2,11 +2,8 @@
 
 *HTML for Python*
 
-The Hypertext Markup Engine (HTME) aims to replace templating languages (like
-Jinja 2) and crude DSLs (like Stan) with a Pythonic way to express HTML trees
-and documents (with inline SVG and MathML support).
-
-[1]: http://karrigell.sourceforge.net/en/htmltags.html
+The Hypertext Markup Engine offers the most Pythonic way to express HTML,
+with full support for inline SVG and MathML.
 
 ## Hello World
 
@@ -44,7 +41,7 @@ insignificant whitespace):
 ## Quick Explanation
 
 HTME separates HTML generation into two concerns: 1) expressing nested trees
-of elements and 2) generating HTML5 documents. It takes a different approach
+of elements and 2) generating HTML5 documents). It takes a different approach
 to each of them:
 
 1. Each type of element (DIV, SVG, IMG etc) is implemented as a custom class
@@ -65,23 +62,36 @@ to each of them:
    its current state.
 
 2. HTME provides an engine that can create the HTML5 boilerplate for *any*
-   document from about twenty simple attributes.
-   
-   The boilerplate includes the doctype, the HTML, HEAD and BODY elements,
-   every element inside the HEAD element, and all of the elements at the end
-   of the BODY element (for loading CSS and JavaScript resources after the
-   body is rendered). You only need to define the *tree* (the guts of the
-   body) as a nested tree of elements.
+   document from about twenty simple attributes, which use common defaults,
+   so you will normally only need to edit a handful of them.
 
-   The engine attributes use common defaults, so you will normally only need
-   to edit a handful of them to get the boilerplate you need.
+   The engine automatically generates the doctype, the HTML, HEAD and BODY
+   elements, every element inside the HEAD element, and all of the elements
+   at the end of the BODY element (for loading CSS and JavaScript resources
+   after the body is rendered). You only need to define the *tree* (the guts
+   of the body) as a nested tree of elements.
+
+   The engine also implements all of the operators that elements have for
+   working with children, allowing you to operate on the tree directly.
 
    An instance of the engine is a container for state that uses HTML syntax
    to represent its current state (always a complete HTML5 document) when
    rendered.
 
-Note: You can use the engine to generate the boilerplate for a project, with
-some other tool (maybe a Markdown parser) generating the guts of the body.
+## Promiscuity
+
+The engine and elements can be used with other tools too. For exmaple, a
+blog site may use the engine to generate its boilerplate, and then use a
+Markdown parser to generate the guts of the body.
+
+``` python
+doc = Engine(title='My Cool Journal', favicon='/static/favicon.png')
+with open('article.md') as file: doc *= markdown.render(file.read())
+```
+
+Elements *just work* with the `str.format` method, interactive interpreters
+and anything else that serializes an object and does something useful with
+the result.
 
 ## Project Status
 
