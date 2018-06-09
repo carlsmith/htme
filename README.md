@@ -80,7 +80,7 @@ to each of them:
 
 ## Promiscuity
 
-The engine and elements can be used with other tools too. For exmaple, a
+The engine and elements can be used with other tools too. For example, a
 blog site may use the engine to generate its boilerplate, and then use a
 Markdown parser to generate the guts of the body.
 
@@ -89,9 +89,10 @@ doc = Engine(title='My Cool Journal', favicon='/static/favicon.png')
 with open('article.md') as file: doc *= markdown.render(file.read())
 ```
 
-Elements *just work* with the `str.format` method, interactive interpreters
-and anything else that serializes an object and does something useful with
-the result.
+As well as passing other things to HTME, you can pass HTME elements and
+engine instances to anything that serializes an object and does something
+useful with the result (like the `str.format` method or an interactive
+interpreter).
 
 ## Project Status
 
